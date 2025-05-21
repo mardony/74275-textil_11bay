@@ -31,18 +31,29 @@ Textil Oncebay API es un servidor Node.js basado en Express que permite:
 
 ## Estructura del Proyecto
 
+project_textil_11bay/
+│
+├── package.json
+├── src/
+│   ├── app.js
+│   ├── data/
+│   │   ├── products.json
+│   │   └── carts.json
+│   ├── manager/
+│   │   ├── ProductManager.js
+│   │   └── CartManager.js
+│   ├── routes/
+│   │   ├── views.router.js
+│   │   └── products.router.js
+│   ├── public/
+│   │   └── js/
+│   │       └── realtime.js
+│   └── views/
+│       ├── layouts/
+│       │   └── main.handlebars
+│       ├── home.handlebars
+│       └── realTimeProducts.handlebars
 
-/src
-  ├── data/
-  │   ├── products.json
-  │   └── carts.json
-  ├── router/
-  │   ├── products.router.js
-  │   └── carts.router.js
-  ├── app.js
-  ├── ProductManager.js
-  ├── CartManager.js
-  └── README.md
 
 El servidor escuchará en el puerto **8080**.
 
