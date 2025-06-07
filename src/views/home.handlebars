@@ -1,6 +1,48 @@
-<h1>Lista de Productos</h1>
+<h1>Productos</h1>
+
+{{#if query}}
+<p>Filtro: {{query}}</p>
+{{/if}}
+
+<form action="/products" method="get">
+    <input type="text" name="query" placeholder="Buscar por categoría">
+    <select name="sort">
+        <option value="">Ordenar por precio</option>
+        <option value="asc" {{#eq sort 'asc' }}selected{{/eq}}>Menor a mayor</option>
+        <option value="desc" {{#eq sort 'desc' }}selected{{/eq}}>Mayor a menor</option>
+    </select>
+    <button type="submit">Aplicar</button>
+</form>
+
 <ul>
     {{#each products}}
-    <li>{{name}} - {{price}}</li>
+    <li>
+        <h3>{{name}}</h3>
+        <p>Precio: ${{price}}</p>
+        <a href="/products/{{_id}}">Ver detalles</a>
+        <button onclick="addToCart('{{_id}}')">Agregar al carrito</button>
+    </li>
     {{/each}}
 </ul>
+
+{{#if hasPrevPage}}
+<a href="/products?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Anterior</a>
+{{/if}}
+
+Página {{page}} de {{totalPages}}
+
+{{#if hasNextPage}}
+<a href="/products?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Siguiente</a>
+{{/if}}
+
+<script>
+    function addToCart(productId) {
+        fetch('/api/carts/cartID/product/' + productId, {
+            method: 'POST'
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Producto agregado al carrito');
+            });
+    }
+</script>

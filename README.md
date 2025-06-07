@@ -36,22 +36,33 @@ project_textil_11bay/
 ├── package.json
 ├── src/
 │   ├── app.js
+│   ├── config/
+│   │   └── db.js
+│   ├── dao/
+│   │   ├── managers/
+│   │   │   ├── CartManager.js
+│   │   │   └── ProductManager.js
+│   │   └── models/
+│   │       ├── cart.model.js
+│   │       └── product.model.js
 │   ├── data/
-│   │   ├── products.json
-│   │   └── carts.json
-│   ├── manager/
-│   │   ├── ProductManager.js
-│   │   └── CartManager.js
-│   ├── routes/
-│   │   ├── views.router.js
-│   │   └── products.router.js
+│   │   └── (archivos JSON iniciales)
 │   ├── public/
 │   │   └── js/
 │   │       └── realtime.js
+│   ├── routes/
+│   │   ├── carts.router.js
+│   │   ├── products.router.js
+│   │   └── views.router.js
+│   ├── utils/
+│   │   ├── pagination.js
+│   │   └── socketUtils.js
 │   └── views/
+│       ├── cart.handlebars
 │       ├── layouts/
 │       │   └── main.handlebars
 │       ├── home.handlebars
+│       ├── productDetail.handlebars
 │       └── realTimeProducts.handlebars
 
 

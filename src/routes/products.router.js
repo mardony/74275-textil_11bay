@@ -1,32 +1,32 @@
-const express = require('express');
-const ProductManager = require('../managers/ProductManager');
+import express from 'express';
+import ProductManager from '../dao/managers/ProductManager.js';
+import { buildPagination } from '../utils/pagination.js';
+
+const router = express.Router();
 const manager = new ProductManager();
 
-module.exports = (io) => {
-    const router = express.Router();
-
+export default (io) => {
     router.get('/', async (req, res) => {
-        const products = await manager.getAllProducts();
-        res.json(products);
-    });
-
-    router.post('/', async (req, res) => {
         try {
-            const product = await manager.addProduct(req.body);
-            const updated = await manager.getAllProducts();
-            io.emit('updateProducts', updated);
-            res.status(201).json(product);
+            const { limit = 10, page = 1, sort, query } = req.query;
+
+            const options = {
+                limit: parseInt(limit),
+                page: parseInt(page),
+                sort: sort ? { price: sort === 'asc' ? 1 : -1 } : undefined,
+                lean: true
+            };
+
+            const filter = query ? { category: query } : {};
+
+            const result = await manager.getAllProductsPaginated(filter, options);
+            res.json(buildPagination(req, result));
         } catch (error) {
-            res.status(400).json({ error: error.message });
+            res.status(500).json({ error: error.message });
         }
     });
 
-    router.delete('/:id', async (req, res) => {
-        await manager.deleteProduct(parseInt(req.params.id));
-        const updated = await manager.getAllProducts();
-        io.emit('updateProducts', updated);
-        res.json({ status: 'deleted' });
-    });
+    // ... otros endpoints ...
 
     return router;
 };

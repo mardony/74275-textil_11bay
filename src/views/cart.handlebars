@@ -1,0 +1,54 @@
+<h1>Carrito ID: {{cart._id}}</h1>
+
+<ul>
+    {{#each cart.products}}
+    <li>
+        <h3>{{this.product.name}}</h3>
+        <p>Precio: ${{this.product.price}}</p>
+        <p>Cantidad: {{this.quantity}}</p>
+        <button onclick="updateQuantity('{{this.product._id}}', {{this.quantity}})">Actualizar</button>
+        <button onclick="removeProduct('{{this.product._id}}')">Eliminar</button>
+    </li>
+    {{/each}}
+</ul>
+
+<button onclick="clearCart()">Vaciar Carrito</button>
+
+<script>
+    function updateQuantity(productId, currentQuantity) {
+        const newQuantity = prompt('Nueva cantidad:', currentQuantity);
+        if (newQuantity && !isNaN(newQuantity)) {
+            fetch(`/api/carts/{{cart._id}}/products/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: parseInt(newQuantity) })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    location.reload();
+                });
+        }
+    }
+
+    function removeProduct(productId) {
+        fetch(`/api/carts/{{cart._id}}/products/${productId}`, {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                location.reload();
+            });
+    }
+
+    function clearCart() {
+        fetch('/api/carts/{{cart._id}}', {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                location.reload();
+            });
+    }
+</script>
