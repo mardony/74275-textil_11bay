@@ -1,13 +1,150 @@
-<h1>Productos en Tiempo Real</h1>
+<h1 class="mb-4"><i class="fas fa-bolt me-2"></i>Productos en Tiempo Real</h1>
 
-<form id="productForm">
-    <input name="name" placeholder="Nombre" required />
-    <input name="price" placeholder="Precio" type="number" required />
-    <input name="description" placeholder="Descripción" required />
-    <button type="submit">Agregar</button>
-</form>
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Agregar Nuevo Producto</h4>
+    </div>
+    <div class="card-body">
+        <form id="productForm" class="row g-3" enctype="multipart/form-data">
+            <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                <input name="name" class="form-control" placeholder="Camiseta de algodón" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Precio</label>
+                <input name="price" class="form-control" placeholder="25.99" type="number" step="0.01" required>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Descripción</label>
+                <input name="description" class="form-control" placeholder="Camiseta 100% algodón" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Categoría</label>
+                <input name="category" class="form-control" placeholder="Ropa" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Código</label>
+                <input name="code" class="form-control" placeholder="PROD123" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Stock</label>
+                <input name="stock" class="form-control" placeholder="100" type="number" required>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Imágenes del producto</label>
+                <input type="file" name="images" class="form-control" multiple accept="image/*">
+                <div class="form-text">Puedes seleccionar hasta 5 imágenes (JPEG, PNG, GIF)</div>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-plus me-2"></i> Agregar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<ul id="productList"></ul>
+<h3 class="mb-3"><i class="fas fa-list me-2"></i>Lista de Productos</h3>
+<div class="row row-cols-1 row-cols-md-3 g-4" id="productList">
+    {{#each products}}
+    <div class="col">
+        <div class="card h-100">
+            {{#if thumbnails.[0]}}
+            <img src="{{thumbnails.[0].url}}" class="card-img-top product-image" alt="{{name}}">
+            {{else}}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center product-image">
+                <i class="fas fa-tshirt fa-3x text-muted"></i>
+            </div>
+            {{/if}}
+            <div class="card-body">
+                <h5 class="card-title">{{name}}</h5>
+                <p class="card-text text-primary fw-bold">${{price}}</p>
+                <p class="card-text"><span class="badge bg-info">{{category}}</span></p>
+                <p class="card-text">{{description}}</p>
+                <p class="card-text"><small class="text-muted">Código: {{code}}</small></p>
+                <p class="card-text"><small class="text-muted">Stock: {{stock}}</small></p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <button onclick="deleteProduct('{{_id}}')" class="btn btn-danger w-100">
+                    <i class="fas fa-trash-alt me-2"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/js/realtime.js"></script>
+<script>
+    const socket = io();
+    const form = document.getElementById('productForm');
+    const list = document.getElementById('productList');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al agregar producto');
+            }
+
+            const newProduct = await response.json();
+            socket.emit('addProduct', newProduct);
+            form.reset();
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+
+    socket.on('updateProducts', (products) => {
+        list.innerHTML = '';
+
+        products.forEach(p => {
+            const col = document.createElement('div');
+            col.className = 'col';
+
+            col.innerHTML = `
+        <div class="card h-100">
+          ${p.thumbnails && p.thumbnails.length > 0 ?
+                    `<img src="${p.thumbnails[0].url}" class="card-img-top product-image" alt="${p.name}">` :
+                    `<div class="card-img-top bg-light d-flex align-items-center justify-content-center product-image">
+              <i class="fas fa-tshirt fa-3x text-muted"></i>
+            </div>`}
+          <div class="card-body">
+            <h5 class="card-title">${p.name}</h5>
+            <p class="card-text text-primary fw-bold">$${p.price}</p>
+            <p class="card-text"><span class="badge bg-info">${p.category}</span></p>
+            <p class="card-text">${p.description}</p>
+            <p class="card-text"><small class="text-muted">Código: ${p.code}</small></p>
+            <p class="card-text"><small class="text-muted">Stock: ${p.stock}</small></p>
+          </div>
+          <div class="card-footer bg-transparent">
+            <button onclick="deleteProduct('${p._id}')" class="btn btn-danger w-100">
+              <i class="fas fa-trash-alt me-2"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      `;
+
+            list.appendChild(col);
+        });
+    });
+
+    function deleteProduct(id) {
+        if (confirm('¿Estás seguro de eliminar este producto?')) {
+            socket.emit('deleteProduct', id);
+        }
+    }
+
+    socket.on('error', (error) => {
+        alert(error);
+    });
+</script>

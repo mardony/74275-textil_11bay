@@ -1,19 +1,64 @@
-<h1>{{product.name}}</h1>
-<p>Precio: ${{product.price}}</p>
-<p>Descripción: {{product.description}}</p>
-<p>Categoría: {{product.category}}</p>
-<p>Stock: {{product.stock}}</p>
+<div class="card mb-4">
+    <div class="row g-0">
+        <div class="col-md-4">
+            {{#if product.thumbnails.[0]}}
+            <img src="{{product.thumbnails.[0].url}}" class="img-fluid rounded-start" alt="{{product.name}}"
+                style="height: 100%; object-fit: cover;">
+            {{else}}
+            <div class="bg-light d-flex align-items-center justify-content-center h-100 p-5">
+                <i class="fas fa-tshirt fa-5x text-muted"></i>
+            </div>
+            {{/if}}
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h1 class="card-title">{{product.name}}</h1>
+                <p class="card-text"><strong>Precio:</strong> ${{product.price}}</p>
+                <p class="card-text"><strong>Descripción:</strong> {{product.description}}</p>
+                <p class="card-text"><strong>Categoría:</strong> {{product.category}}</p>
+                <p class="card-text"><strong>Stock:</strong> {{product.stock}}</p>
+                <p class="card-text"><strong>Código:</strong> {{product.code}}</p>
 
-<button onclick="addToCart('{{product._id}}')">Agregar al carrito</button>
+                <button onclick="addToCart('{{product._id}}')" class="btn btn-success">Agregar al carrito</button>
+                <a href="/products" class="btn btn-secondary ms-2">Volver</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{#if product.thumbnails}}
+<div class="row mb-4">
+    <h4 class="mb-3">Galería de imágenes</h4>
+    {{#each product.thumbnails}}
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <img src="{{this.url}}" class="card-img-top" alt="Imagen del producto"
+                style="height: 150px; object-fit: cover;">
+        </div>
+    </div>
+    {{/each}}
+</div>
+{{/if}}
 
 <script>
     function addToCart(productId) {
-        fetch('/api/carts/cartID/product/' + productId, {
-            method: 'POST'
+        const cartId = '65d4a5e1f7a1b2c3d4e5f6a7';
+
+        fetch(`/api/carts/${cartId}/product/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: 1 })
         })
-            .then(response => response.json())
-            .then(data => {
-                alert('Producto agregado al carrito');
-            });
+            .then(response => {
+                if (response.ok) {
+                    showToast('✅ Producto agregado al carrito');
+                    updateCartCounter(); // Actualizar contador
+                } else {
+                    response.json().then(data => showToast(`❌ ${data.error}`, 'danger'));
+                }
+            })
+            .catch(error => showToast('❌ Error en la solicitud', 'danger'));
     }
 </script>

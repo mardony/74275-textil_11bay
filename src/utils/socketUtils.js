@@ -5,8 +5,12 @@ export const configureSocket = (io) => {
     io.on('connection', async (socket) => {
         console.log('Cliente conectado');
 
-        const products = await productManager.getAllProducts();
-        socket.emit('updateProducts', products);
+        try {
+            const products = await productManager.getAllProducts();
+            socket.emit('updateProducts', products);
+        } catch (error) {
+            socket.emit('error', 'Error al cargar productos');
+        }
 
         socket.on('addProduct', async (productData) => {
             try {

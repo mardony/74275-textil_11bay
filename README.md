@@ -7,10 +7,10 @@ API RESTful para la gestión de productos textiles artesanales y carritos de com
 - [Descripción](#descripción)
 - [Características](#características)
 - [Estructura del Proyecto](#estructura-del-proyecto)
-- [Instalación](#instalación)
-- [Uso](#uso)
-- [Endpoints Principales](#endpoints-principales)
-- [Persistencia de Datos](#persistencia-de-datos)
+- [Funcionalidades Clave](#funcionalidades_clave)
+- [Capturas de Pantalla](#capturas_pantalla)
+- [API Endpoints](#api_endpoints)
+- [Licencia](#licencia)
 - [Créditos](#créditos)
 
 ## Descripción
@@ -30,79 +30,109 @@ Textil Oncebay API es un servidor Node.js basado en Express que permite:
 - Código organizado y fácil de mantener
 
 ## Estructura del Proyecto
-
-project_textil_11bay/
-│
-├── package.json
-├── src/
-│   ├── app.js
-│   ├── config/
-│   │   └── db.js
-│   ├── dao/
-│   │   ├── managers/
-│   │   │   ├── CartManager.js
-│   │   │   └── ProductManager.js
-│   │   └── models/
-│   │       ├── cart.model.js
-│   │       └── product.model.js
-│   ├── data/
-│   │   └── (archivos JSON iniciales)
-│   ├── public/
-│   │   └── js/
-│   │       └── realtime.js
-│   ├── routes/
-│   │   ├── carts.router.js
-│   │   ├── products.router.js
-│   │   └── views.router.js
-│   ├── utils/
-│   │   ├── pagination.js
-│   │   └── socketUtils.js
-│   └── views/
-│       ├── cart.handlebars
-│       ├── layouts/
-│       │   └── main.handlebars
-│       ├── home.handlebars
-│       ├── productDetail.handlebars
-│       └── realTimeProducts.handlebars
-
-
-El servidor escuchará en el puerto **8080**.
-
-## Uso
-
-Utiliza herramientas como **Postman** o **cURL** para interactuar con la API. Ejemplo para agregar un producto:
-
-curl -X POST -H "Content-Type: application/json" -d '{
-  "title": "Tapiz Andino",
-  "description": "Tapiz artesanal tejido a mano",
-  "code": "TA001",
-  "price": 120.00,
-  "stock": 10,
-  "category": "tapices"
-}' http://localhost:8080/api/products
+src/
+├── app.js                  # Punto de entrada principal
+├── config/
+│   ├── db.js               # Configuración de MongoDB
+│   └── cloudinary.js       # Configuración de Cloudinary
+├── dao/
+│   ├── managers/           # Lógica de negocio
+│   │   ├── CartManager.js
+│   │   └── ProductManager.js
+│   └── models/             # Modelos de datos
+│       ├── cart.model.js
+│       └── product.model.js
+├── initializeDB.js         # Inicialización de datos
+├── middlewares/
+│   └── imageUpload.js      # Middleware para subida de imágenes
+├── public/                 # Archivos estáticos
+│   └── js/
+│       └── realtime.js
+├── routes/                 # Definición de rutas
+│   ├── carts.router.js
+│   ├── products.router.js
+│   └── views.router.js
+├── utils/                  # Utilidades
+│   ├── handlebarsHelpers.js
+│   ├── pagination.js
+│   └── socketUtils.js
+└── views/                  # Vistas Handlebars
+    ├── cart.handlebars
+    ├── error.handlebars
+    ├── home.handlebars
+    ├── layouts/
+    │   └── main.handlebars
+    ├── productDetail.handlebars
+    └── realTimeProducts.handlebars
 
 
-## Endpoints Principales
+## Funcionalidades clave
+### Gestión de productos
+- Listado paginado con filtros por categoría
+- Ordenamiento por precio (asc/desc)
+- Vista detallada de productos
+- Subida de hasta 5 imágenes por producto
+- Eliminación con borrado de imágenes en Cloudinary
 
-### Productos (`/api/products/`)
-- `GET /` : Lista todos los productos.
-- `GET /:pid` : Muestra un producto por ID.
-- `POST /` : Agrega un nuevo producto.
-- `PUT /:pid` : Actualiza un producto existente.
-- `DELETE /:pid` : Elimina un producto.
+### Carrito de compras
+- Sistema de carrito persistente con ID fijo
+- Agregar/eliminar productos
+- Actualizar cantidades
+- Cálculo automático de totales
+- Gestión de stock en tiempo real
+- Vaciar carrito completo
 
-### Carritos (`/api/carts/`)
-- `POST /` : Crea un nuevo carrito.
-- `GET /:cid` : Lista los productos de un carrito.
-- `POST /:cid/product/:pid` : Agrega un producto al carrito.
+### Tiempo real
+- Actualización instantánea de productos
+- Agregar/eliminar productos sin recargar
+- Notificaciones de acciones
 
-## Persistencia de Datos
+## Capturas de pantalla
+- Vista principal de productos
+https://ejemplo.com/products-screenshot.png
+Listado de productos con paginación y filtros
 
-La información se almacena en archivos JSON ubicados en la carpeta `data/`:
-- `products.json`
-- `carts.json`
+- Detalle de producto
+https://ejemplo.com/product-detail.png
+Vista detallada con galería de imágenes
 
-Esto permite un fácil respaldo, portabilidad y migración futura a bases de datos más robustas.
+- Carrito de compras
+https://ejemplo.com/cart-screenshot.png
+Gestión de productos en el carrito con cálculo de totales
+
+- Vista en tiempo real
+https://ejemplo.com/realtime-screenshot.png
+Panel de administración en tiempo real
+
+## API Endpoints
+### Productos
+- GET /api/products - Listar productos (paginado)
+
+- GET /api/products/:pid - Obtener producto por ID
+
+- POST /api/products - Crear nuevo producto
+
+- PUT /api/products/:id - Actualizar producto
+
+- DELETE /api/products/:id - Eliminar producto
+
+### Carritos
+- POST /api/carts - Crear nuevo carrito
+
+- GET /api/carts/:cid - Obtener carrito por ID
+
+- POST /api/carts/:cid/product/:pid - Agregar producto al carrito
+
+- PUT /api/carts/:cid - Actualizar carrito completo
+
+- PUT /api/carts/:cid/products/:pid - Actualizar cantidad de producto
+
+- DELETE /api/carts/:cid/products/:pid - Eliminar producto del carrito
+
+- DELETE /api/carts/:cid - Vaciar carrito
+
+## Licencia
+Este proyecto está bajo la Licencia MIT. Ver el archivo LICENSE para más detalles.
 
 ## Créditos
 

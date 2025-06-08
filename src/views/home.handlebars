@@ -1,48 +1,124 @@
-<h1>Productos</h1>
+<h1 class="mb-4"><i class="fas fa-boxes me-2"></i>Productos</h1>
 
-{{#if query}}
-<p>Filtro: {{query}}</p>
-{{/if}}
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="/products" method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="query" class="form-control" placeholder="Buscar por categoría"
+                    value="{{query}}">
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="">Ordenar por precio</option>
+                    <option value="asc" {{#eq sort 'asc' }}selected{{/eq}}>Menor a mayor</option>
+                    <option value="desc" {{#eq sort 'desc' }}selected{{/eq}}>Mayor a menor</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="limit" class="form-select">
+                    <option value="5" {{#eq limit '5' }}selected{{/eq}}>5 por página</option>
+                    <option value="10" {{#eq limit '10' }}selected{{/eq}}>10 por página</option>
+                    <option value="20" {{#eq limit '20' }}selected{{/eq}}>20 por página</option>
+                    <option value="50" {{#eq limit '50' }}selected{{/eq}}>50 por página</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<form action="/products" method="get">
-    <input type="text" name="query" placeholder="Buscar por categoría">
-    <select name="sort">
-        <option value="">Ordenar por precio</option>
-        <option value="asc" {{#eq sort 'asc' }}selected{{/eq}}>Menor a mayor</option>
-        <option value="desc" {{#eq sort 'desc' }}selected{{/eq}}>Mayor a menor</option>
-    </select>
-    <button type="submit">Aplicar</button>
-</form>
-
-<ul>
+<div class="row row-cols-1 row-cols-md-3 g-4">
     {{#each products}}
-    <li>
-        <h3>{{name}}</h3>
-        <p>Precio: ${{price}}</p>
-        <a href="/products/{{_id}}">Ver detalles</a>
-        <button onclick="addToCart('{{_id}}')">Agregar al carrito</button>
-    </li>
+    <div class="col">
+        <div class="card h-100">
+            {{#if thumbnails.[0]}}
+            <img src="{{thumbnails.[0].url}}" class="card-img-top product-image" alt="{{name}}">
+            {{else}}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center product-image">
+                <i class="fas fa-tshirt fa-3x text-muted"></i>
+            </div>
+            {{/if}}
+            <div class="card-body">
+                <h5 class="card-title">{{name}}</h5>
+                <p class="card-text text-primary fw-bold">${{price}}</p>
+                <p class="card-text"><span class="badge bg-info">{{category}}</span></p>
+                <p class="card-text text-muted">{{description}}</p>
+                <p class="card-text"><small class="text-muted">Stock: {{stock}} unidades</small></p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="/products/{{_id}}" class="btn btn-info btn-sm">
+                    <i class="fas fa-info-circle me-1"></i> Detalles
+                </a>
+                <button onclick="addToCart('{{_id}}')" class="btn btn-success btn-sm ms-2">
+                    <i class="fas fa-cart-plus me-1"></i> Agregar
+                </button>
+            </div>
+        </div>
+    </div>
     {{/each}}
-</ul>
+</div>
 
-{{#if hasPrevPage}}
-<a href="/products?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Anterior</a>
-{{/if}}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {{#if hasPrevPage}}
+        <li class="page-item">
+            <a class="page-link" href="/products?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">
+                <i class="fas fa-chevron-left me-1"></i> Anterior
+            </a>
+        </li>
+        {{/if}}
 
-Página {{page}} de {{totalPages}}
+        {{#if prevPage}}
+        <li class="page-item">
+            <a class="page-link"
+                href="/products?page={{prevPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">{{prevPage}}</a>
+        </li>
+        {{/if}}
 
-{{#if hasNextPage}}
-<a href="/products?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">Siguiente</a>
-{{/if}}
+        <li class="page-item active">
+            <span class="page-link">{{page}}</span>
+        </li>
+
+        {{#if nextPage}}
+        <li class="page-item">
+            <a class="page-link"
+                href="/products?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">{{nextPage}}</a>
+        </li>
+        {{/if}}
+
+        {{#if hasNextPage}}
+        <li class="page-item">
+            <a class="page-link" href="/products?page={{nextPage}}&limit={{limit}}&sort={{sort}}&query={{query}}">
+                Siguiente <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+        </li>
+        {{/if}}
+    </ul>
+</nav>
 
 <script>
     function addToCart(productId) {
-        fetch('/api/carts/cartID/product/' + productId, {
-            method: 'POST'
+        const cartId = '65d4a5e1f7a1b2c3d4e5f6a7';
+
+        fetch(`/api/carts/${cartId}/product/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: 1 })
         })
-            .then(response => response.json())
-            .then(data => {
-                alert('Producto agregado al carrito');
-            });
+            .then(response => {
+                if (response.ok) {
+                    showToast('✅ Producto agregado al carrito');
+                    updateCartCounter(); // Actualizar contador
+                } else {
+                    response.json().then(data => showToast(`❌ ${data.error}`, 'danger'));
+                }
+            })
+            .catch(error => showToast('❌ Error en la solicitud', 'danger'));
     }
 </script>

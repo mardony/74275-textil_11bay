@@ -1,61 +1,80 @@
-const fs = require('fs').promises;
-const path = require('path');
-const filePath = path.join(__dirname, '../data/products.json');
+import Product from '../models/product.model.js';
+import cloudinary from '../../config/cloudinary.js';
 
 class ProductManager {
     async getAllProducts() {
-        try {
-            const data = await fs.readFile(filePath, 'utf-8');
-            return JSON.parse(data);
-        } catch (error) {
-            return [];
-        }
+        return await Product.find().lean();
     }
 
     async getProductById(id) {
-        const products = await this.getAllProducts();
-        return products.find(product => product.id === id);
+        return await Product.findById(id).lean();
     }
 
-    async addProduct(product) {
-        const products = await this.getAllProducts();
-
-        // Validación: verificar si nombre ya existe
-        if (products.some(p => p.name === product.name)) {
-            throw new Error('Producto con ese nombre ya existe');
+    async addProduct(productData) {
+        const existingProduct = await Product.findOne({ code: productData.code });
+        if (existingProduct) {
+            throw new Error('Producto con ese código ya existe');
         }
 
-        if (!product.name || !product.price || !product.description) {
-            throw new Error('Datos incompletos');
-        }
+        const newProduct = new Product({
+            ...productData,
+            price: parseFloat(productData.price),
+            stock: parseInt(productData.stock),
+            thumbnails: productData.thumbnails || []
+        });
 
-        product.id = this.generateId(products);
-        product.status = true;
-        products.push(product);
-        await fs.writeFile(filePath, JSON.stringify(products, null, 2));
-        return product;
+        return await newProduct.save();
     }
 
     async updateProduct(id, updatedFields) {
-        let products = await this.getAllProducts();
-        const index = products.findIndex(p => p.id === id);
-        if (index === -1) return false;
+        if (updatedFields.thumbnails) {
+            const oldProduct = await Product.findById(id);
+            if (oldProduct && oldProduct.thumbnails.length > 0) {
+                await this.deleteOldImages(oldProduct.thumbnails);
+            }
+        }
 
-        products[index] = { ...products[index], ...updatedFields };
-        await fs.writeFile(filePath, JSON.stringify(products, null, 2));
-        return true;
+        return await Product.findByIdAndUpdate(id, updatedFields, {
+            new: true,
+            runValidators: true
+        });
     }
 
     async deleteProduct(id) {
-        let products = await this.getAllProducts();
-        products = products.filter(p => p.id !== id);
-        await fs.writeFile(filePath, JSON.stringify(products, null, 2));
-        return true;
+        const product = await Product.findById(id);
+        if (!product) return null;
+
+        if (product.thumbnails.length > 0) {
+            await this.deleteOldImages(product.thumbnails);
+        }
+
+        return await Product.findByIdAndDelete(id);
     }
 
-    generateId(products) {
-        return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    async getAllProductsPaginated(filter = {}, options = {}) {
+        const defaultOptions = {
+            page: options.page || 1,
+            limit: options.limit || 10,
+            lean: true
+        };
+
+        if (options.sort) {
+            defaultOptions.sort = { price: options.sort === 'asc' ? 1 : -1 };
+        }
+
+        return await Product.paginate(filter, defaultOptions);
+    }
+
+    async deleteOldImages(thumbnails) {
+        try {
+            const deletePromises = thumbnails.map(thumb =>
+                cloudinary.uploader.destroy(thumb.public_id)
+            );
+            await Promise.all(deletePromises);
+        } catch (error) {
+            console.error('Error deleting old images:', error);
+        }
     }
 }
 
-module.exports = ProductManager;
+export default ProductManager;

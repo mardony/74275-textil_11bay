@@ -1,6 +1,6 @@
 export const buildPagination = (req, result) => {
     const { limit = 10, page = 1, sort, query } = req.query;
-    const baseUrl = req.baseUrl;
+    const baseUrl = req.originalUrl.split('?')[0];
 
     return {
         status: 'success',
@@ -12,10 +12,10 @@ export const buildPagination = (req, result) => {
         hasPrevPage: result.hasPrevPage,
         hasNextPage: result.hasNextPage,
         prevLink: result.hasPrevPage
-            ? `${baseUrl}?limit=${limit}&page=${result.prevPage}&sort=${sort}&query=${query}`
+            ? `${baseUrl}?limit=${limit}&page=${result.prevPage}&sort=${sort || ''}&query=${query || ''}`
             : null,
         nextLink: result.hasNextPage
-            ? `${baseUrl}?limit=${limit}&page=${result.nextPage}&sort=${sort}&query=${query}`
+            ? `${baseUrl}?limit=${limit}&page=${result.nextPage}&sort=${sort || ''}&query=${query || ''}`
             : null
     };
 };
