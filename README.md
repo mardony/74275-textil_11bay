@@ -7,9 +7,9 @@ API RESTful para la gestión de productos textiles artesanales y carritos de com
 - [Descripción](#descripción)
 - [Características](#características)
 - [Estructura del Proyecto](#estructura-del-proyecto)
-- [Funcionalidades Clave](#funcionalidades_clave)
-- [Capturas de Pantalla](#capturas_pantalla)
-- [API Endpoints](#api_endpoints)
+- [Funcionalidades Clave](#funcionalidades-clave)
+- [Capturas de Pantalla](#capturas-pantalla)
+- [API Endpoints](#api-endpoints)
 - [Licencia](#licencia)
 - [Créditos](#créditos)
 
